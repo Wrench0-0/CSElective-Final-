@@ -19,6 +19,8 @@
         .btn-success:hover { background: #218838; }
         .btn-secondary { background: #6c757d; color: white; }
         .btn-secondary:hover { background: #545b62; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
         .error { color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 4px; margin-bottom: 20px; }
     </style>
 </head>
@@ -70,6 +72,9 @@
             <div class="form-actions">
                 <button type="submit" class="btn-success">💾 Save Changes</button>
                 <a href="{{ url_for('ui_index') }}" class="btn-secondary">❌ Cancel</a>
+                <form method="POST" action="{{ url_for('ui_delete', id=player.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this player?');">
+                    <button type="submit" class="btn-danger">🗑️ Delete Player</button>
+                </form>
             </div>
         </form>
     </div>

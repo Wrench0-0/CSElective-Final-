@@ -175,7 +175,7 @@ def ui_create():
             
             cur = mysql.connection.cursor()
             if player_id:
-                # Insert with specific ID
+                
                 cur.execute("""
                     INSERT INTO players (id, name, club, position, goals, assists, appearances)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
