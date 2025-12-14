@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Players API</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin-bottom: 20px; }
+        .controls { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .controls button, .controls a { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #545b62; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-small { padding: 6px 10px; font-size: 12px; }
+        .format-toggle { margin-bottom: 15px; }
+        .format-toggle button { margin-right: 10px; padding: 8px 15px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; border-radius: 4px; }
+        .format-toggle button.active { background: #007bff; color: white; border-color: #007bff; }
+        .players-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .players-table th, .players-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .players-table th { background: #f9f9f9; font-weight: bold; }
+        .players-table tr:hover { background: #f5f5f5; }
+        .actions { display: flex; gap: 5px; }
+        .actions a, .actions button { padding: 6px 10px; font-size: 12px; text-decoration: none; border: none; border-radius: 3px; cursor: pointer; }
+        .error { color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        .success { color: #155724; background: #d4edda; padding: 12px; border-radius: 4px; margin-bottom: 20px; }
+        pre { background: #f9f9f9; padding: 15px; border-radius: 4px; overflow-x: auto; margin-top: 20px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚽ Football Players API</h1>
+        
+        {% if message %}
+            <div class="success">{{ message }}</div>
+        {% endif %}
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <div class="controls">
+            <a href="{{ url_for('ui_create') }}" class="btn-primary">➕ Add Player</a>
+            <button class="btn-secondary" onclick="location.reload()">🔄 Refresh</button>
+        </div>
+        
+        <div class="format-toggle">
+            <strong>View Format:</strong>
+            <button class="active" onclick="showFormat('json')">JSON</button>
+            <button onclick="showFormat('xml')">XML</button>
+            <button onclick="showFormat('table')">Table</button>
+        </div>
+        
+        <!-- JSON View -->
+        <div id="json-view" style="display: block;">
+            <h3>JSON Response</h3>
+            <button class="btn-secondary btn-small" onclick="copyToClipboard('json-content')">📋 Copy</button>
+            <pre id="json-content">{{ json_data }}</pre>
+        </div>
+        
+        <!-- XML View -->
+        <div id="xml-view" style="display: none;">
+            <h3>XML Response</h3>
+            <button class="btn-secondary btn-small" onclick="copyToClipboard('xml-content')">📋 Copy</button>
+            <pre id="xml-content">{{ xml_data }}</pre>
+        </div>
+        
+        <!-- Table View -->
+        <div id="table-view" style="display: none;">
+            <h3>Players List ({{ players|length }} total)</h3>
+            <table class="players-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Club</th>
+                        <th>Position</th>
+                        <th>Goals</th>
+                        <th>Assists</th>
+                        <th>Appearances</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                    <tr>
+                        <td>{{ player.id }}</td>
+                        <td>{{ player.name }}</td>
+                        <td>{{ player.club }}</td>
+                        <td>{{ player.position }}</td>
+                        <td>{{ player.goals }}</td>
+                        <td>{{ player.assists }}</td>
+                        <td>{{ player.appearances }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('ui_edit', id=player.id) }}" class="btn-primary btn-small">✏️ Edit</a>
+                            <form method="POST" action="{{ url_for('ui_delete', id=player.id) }}" style="display: inline;" onsubmit="return confirm('Delete player: {{ player.name }}?');">
+                                <button type="submit" class="btn-danger btn-small">🗑️ Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 20px;">No players found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        function showFormat(format) {
+            document.getElementById('json-view').style.display = format === 'json' ? 'block' : 'none';
+            document.getElementById('xml-view').style.display = format === 'xml' ? 'block' : 'none';
+            document.getElementById('table-view').style.display = format === 'table' ? 'block' : 'none';
+            
+            document.querySelectorAll('.format-toggle button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
